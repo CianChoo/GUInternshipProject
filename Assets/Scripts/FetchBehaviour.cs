@@ -11,6 +11,7 @@ public class FetchBehaviour : MonoBehaviour
     public Transform mouthHold;
     public float pickUpDistance;
     public float returnDistance;
+    public float followDistance;
     
     [Header("Wandering Fields")]
     public float minIdleTime = 2f;
@@ -21,7 +22,7 @@ public class FetchBehaviour : MonoBehaviour
     
     public float wanderRadius;
     
-    enum State {Idle, Wander, Chasing, Returning}
+    enum State {Idle, Wander, Chasing, Returning, Feeding}
     State state = State.Idle;
     
     private NavMeshAgent agent;
@@ -35,6 +36,8 @@ public class FetchBehaviour : MonoBehaviour
     
     private bool waitingToMove;
     private float waitAfterArrival = 1f;
+    
+    private bool foodIsHeld = false;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -64,6 +67,9 @@ public class FetchBehaviour : MonoBehaviour
                 break;
             case State.Returning:
                 ReturnBehaviour();
+                break;
+            case State.Feeding:
+                FeedingBehaviour();
                 break;
         }
     }
@@ -171,6 +177,55 @@ public class FetchBehaviour : MonoBehaviour
         ballRb.linearVelocity = Vector3.zero;
         state = State.Idle;
     }
+    
+    // --------------------
+    // Feeding Behaviour
+    // --------------------
+
+    void FeedingBehaviour()
+    {
+        float distance = Vector3.Distance(transform.position, player.position);
+
+        if (distance > followDistance)
+        {
+            agent.SetDestination(player.position);
+        }
+        else
+        {
+            agent.ResetPath();
+        }
+        
+        // if (!agent.pathPending && agent.remainingDistance > agent.stoppingDistance)
+        // {
+        //     agent.SetDestination(player.position);
+        // }
+        
+        Vector3 direction = (player.position - transform.position).normalized;
+        direction.y = 0;
+        if (direction != Vector3.zero)
+        {
+            Quaternion lookRotation = Quaternion.LookRotation(direction);
+            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 10f);
+        }
+    }
+
+    public void OnFoodHeld(bool isHeld)
+    {
+        foodIsHeld = isHeld;
+
+        if (isHeld)
+        {
+            state = State.Feeding;
+        } 
+        else if (state == State.Feeding)
+        {
+            state = State.Idle;
+            timer = 0f; 
+            currentIdleDuration = Random.Range(minIdleTime, maxIdleTime);
+        }
+         
+    }
+    
     
 }
 
