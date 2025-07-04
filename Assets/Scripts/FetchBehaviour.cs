@@ -12,6 +12,9 @@ public class FetchBehaviour : MonoBehaviour
     public float pickUpDistance;
     public float returnDistance;
     public float followDistance;
+
+    [Header("VFX")] 
+    public ParticleSystem heart;
     
     [Header("Wandering Fields")]
     public float minIdleTime = 2f;
@@ -176,6 +179,7 @@ public class FetchBehaviour : MonoBehaviour
         ballCollider.enabled = true;
         ballRb.linearVelocity = Vector3.zero;
         state = State.Idle;
+        heart.Play();
     }
     
     // --------------------
