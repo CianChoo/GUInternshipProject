@@ -1,16 +1,15 @@
+using System.Collections.Generic;
+using DefaultNamespace;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class DecisionB : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public FetchBehaviour fetchBehaviour;
+    public NavMeshAgent agent;
+    public void OnButtonPress()
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        fetchBehaviour.SetFeed(false);
+        agent.speed -= 0.5f;
     }
 }

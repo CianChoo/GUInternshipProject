@@ -12,7 +12,12 @@ public class FetchBehaviour : MonoBehaviour
     public float pickUpDistance;
     public float returnDistance;
     public float followDistance;
-
+    
+    [Header("Behaviour Toggles")]
+    public bool fetchEnabled = true;
+    public bool petEnabled = true;
+    public bool feedEnabled = true;
+    
     [Header("VFX")] 
     public ParticleSystem heart;
     
@@ -51,12 +56,22 @@ public class FetchBehaviour : MonoBehaviour
 
        currentIdleDuration = Random.Range(minIdleTime, maxIdleTime);
        
-       ball.OnBallThrown += () => { state = State.Chasing; };
+       SetFetch(fetchEnabled);
     }
     
     // Update is called once per frame
     void Update()
     {
+        if (!fetchEnabled && (state == State.Chasing || state == State.Returning))
+        {
+            state = State.Wander;
+        }
+
+        if (!feedEnabled && state == State.Feeding)
+        {
+            state = State.Wander;
+        }
+        
         switch (state)
         {
             case State.Idle:
@@ -66,14 +81,67 @@ public class FetchBehaviour : MonoBehaviour
                 WanderBehvaiour();
                 break;
             case State.Chasing:
-                ChaseBehaviour();
+                if (fetchEnabled) ChaseBehaviour();
                 break;
             case State.Returning:
-                ReturnBehaviour();
+                if (fetchEnabled) ReturnBehaviour();
                 break;
             case State.Feeding:
-                FeedingBehaviour();
+                if (feedEnabled) FeedingBehaviour();
                 break;
+        }
+    }
+    
+    // --------------------
+    // Toggle Behaviours
+    // --------------------
+
+    public void SetFetch(bool enabled)
+    {
+        fetchEnabled = enabled;
+
+        if (enabled)
+        {
+            ball.OnBallThrown += OnBallThrown;
+        }
+        else
+        {
+            ball.OnBallThrown -= OnBallThrown;
+
+            if (state == State.Chasing || state == State.Returning)
+            {
+                state = State.Idle;
+                timer = 0f;
+                currentIdleDuration = Random.Range(minIdleTime, maxIdleTime);
+                if (ball.transform.IsChildOf(mouthHold))
+                {
+                    DropBall();
+                }
+            }
+        }
+    }
+
+    public void SetFeed(bool enabled)
+    {
+        feedEnabled = enabled;
+
+        if (!enabled && state == State.Feeding)
+        {
+            state = State.Idle;
+            timer = 0f;
+            currentWanderDuration = Random.Range(minWanderTime, maxWanderTime);
+        }
+    }
+
+    public void SetPetting(bool enabled)
+    {
+        petEnabled = enabled;
+
+        if (!enabled && state == State.Feeding)
+        {
+            state = State.Idle;
+            timer = 0f;
+            currentIdleDuration = Random.Range(minIdleTime, maxIdleTime);
         }
     }
     
@@ -181,6 +249,14 @@ public class FetchBehaviour : MonoBehaviour
         state = State.Idle;
         heart.Play();
     }
+
+    void OnBallThrown()
+    {
+        if (fetchEnabled)
+        {
+            state = State.Chasing;
+        }
+    }
     
     // --------------------
     // Feeding Behaviour
@@ -217,7 +293,7 @@ public class FetchBehaviour : MonoBehaviour
     {
         foodIsHeld = isHeld;
 
-        if (isHeld)
+        if (feedEnabled && isHeld)
         {
             state = State.Feeding;
         } 

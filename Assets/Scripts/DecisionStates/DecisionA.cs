@@ -1,16 +1,17 @@
+using System;
+using DefaultNamespace;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class DecisionA : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public FetchBehaviour fetchBehaviour;
+    public NavMeshAgent agent;
+    public void OnButtonPress()
     {
-        
+        fetchBehaviour.SetFetch(false);
+        agent.speed -= 1f;
+        Debug.Log("Fetch Disabled");
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    
 }

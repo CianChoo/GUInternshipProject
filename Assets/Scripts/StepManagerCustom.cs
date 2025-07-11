@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
@@ -6,24 +7,40 @@ namespace DefaultNamespace
 {
     public class StepManagerCustom : MonoBehaviour
     {
-        [SerializeField]
-        public TextMeshProUGUI m_StepButtonTextField;
-        
-        List<Step> m_StepList = new List<Step>();
 
-        int m_CurrentStepIndex = 0;
+        public Transform decisionParent;
+        private int currentIndex = 0;
 
-        public void Next()
+        private void Start()
         {
-            m_StepList[m_CurrentStepIndex].stepObject.SetActive(false);
-            m_CurrentStepIndex = (m_CurrentStepIndex + 1) % m_StepList.Count;
-            m_StepList[m_CurrentStepIndex].stepObject.SetActive(true);
-            m_StepButtonTextField.text = m_StepList[m_CurrentStepIndex].buttonText;
+            foreach (Transform child in decisionParent)
+            {
+                child.gameObject.SetActive(false);
+            }
+
+            if (decisionParent.childCount > 0)
+            {
+                decisionParent.GetChild(0).gameObject.SetActive(true);
+            }
         }
 
-        public void SetList(List<Step> stepList)
+        public void ShowNextDecision()
         {
-            m_StepList = stepList;
+            if (currentIndex < decisionParent.childCount)
+            {
+                decisionParent.GetChild(currentIndex).gameObject.SetActive(false);
+            }
+
+            currentIndex++;
+
+            if (currentIndex < decisionParent.childCount)
+            {
+                decisionParent.GetChild(currentIndex).gameObject.SetActive(true);
+            }
+            else
+            {
+                Debug.Log("No more decisions");
+            }
         }
         
     }
